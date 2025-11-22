@@ -123,13 +123,30 @@ public class Bot : MonoBehaviour
     {
         RaycastHit raycastInfo;
         Vector3 rayToTarget = target.transform.position - this.transform.position;
-        if (Physics.Raycast(this.transform.position, rayToTarget, out raycastInfo))
+        float lookAngle = Vector3.Angle(this.transform.forward, rayToTarget);
+        if (lookAngle < 60 && Physics.Raycast(this.transform.position, rayToTarget, out raycastInfo))
         {
             if (raycastInfo.transform.gameObject.tag == "cop")
             return true;
         }
         return false;
     } 
+
+    bool CanSeeMe()
+    {
+        Vector3 rayToTarget = this.transform.position - target.transform.position;
+        float lookAngle = Vector3.Angle(target.transform.forward, rayToTarget);
+
+        if(lookAngle < 60)
+            return true;
+        return false;
+    }
+
+    bool coolDown = false;
+    void BehaviourCoolDown()
+    {
+        coolDown = false;
+    }
 
     // Update is called once per frame
     void Update()  //Estas 3 linhas de 
@@ -140,7 +157,16 @@ public class Bot : MonoBehaviour
         //Evade();
         //Wander();
         //Hide();
-        if (CanSeeTarget())
-        CleverHide();
+        if (!coolDown)
+        {
+            if (CanSeeTarget() && CanSeeMe())
+            {
+                CleverHide();
+                coolDown = true;
+                Invoke("BehaviourCoolDown", 5);
+            }
+            else
+                Pursue();
+        }        
     }
 }
